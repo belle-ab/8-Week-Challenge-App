@@ -462,6 +462,64 @@ body{
 }
 .foot a{color:var(--text-dim);text-decoration:none;margin:0 6px}
 
+/* ===== HISTORY BANNER ===== */
+.history-banner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--bg-elev-2);
+  border:1px solid var(--border-strong);
+  border-radius:12px;
+  padding:10px 14px;
+  margin-bottom:16px;
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.08em;
+  color:var(--text-dim);
+}
+.today-pill{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  background:var(--accent);
+  color:#0a0a0a;
+  border:none;
+  border-radius:100px;
+  padding:4px 10px;
+  font-weight:600;
+  cursor:pointer;
+  -webkit-appearance:none;
+  flex-shrink:0;
+}
+
+/* ===== NAV ARROWS ===== */
+.stat-nav{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.nav-arrow{
+  background:none;
+  border:none;
+  color:var(--accent);
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+  padding:0 1px;
+  -webkit-appearance:none;
+  transition:opacity 0.2s;
+  flex-shrink:0;
+}
+.nav-arrow:disabled{
+  color:var(--text-faint);
+  opacity:0.4;
+  cursor:default;
+}
+
+/* ===== READONLY ===== */
+.supp.readonly{cursor:default;pointer-events:none}
+
 /* Hide spinner */
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 </style>
@@ -469,6 +527,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <body>
 
 <div class="app">
+
+  <!-- HISTORY BANNER -->
+  <div id="historyBanner" class="history-banner" style="display:none">
+    <span id="historyBannerText"></span>
+    <button class="today-pill" id="todayPill">Today</button>
+  </div>
 
   <!-- HEADER -->
   <div class="header">
@@ -484,7 +548,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   <div class="stats">
     <div class="stat">
       <div class="stat-label">Day</div>
-      <div class="stat-value accent" id="dayNum">1<span class="small"> / 56</span></div>
+      <div class="stat-nav">
+        <button class="nav-arrow" id="navBack" aria-label="Previous day" disabled>‹</button>
+        <div class="stat-value accent" id="dayNum">1<span class="small"> / 56</span></div>
+        <button class="nav-arrow" id="navForward" aria-label="Next day" disabled>›</button>
+      </div>
     </div>
     <div class="stat">
       <div class="stat-label">Streak</div>
@@ -529,6 +597,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <button class="btn btn-secondary" id="resetDay">Reset Today</button>
     <button class="btn btn-ghost" id="enableNotif">Enable Reminders</button>
     <button class="btn btn-ghost" id="exportData">Export Backup</button>
+    <button class="btn btn-ghost" id="exportCalendar">Export Calendar Reminders</button>
   </div>
 
   <div class="foot">
@@ -575,7 +644,6 @@ const BLOCKS = [
       {id:'quercetin-am',name:'Quercetin',dose:'500 mg'},
       {id:'zinc',name:'Zinc Picolinate',dose:'50 mg',note:'Every other day'},
       {id:'enzymes-am',name:'Digestive Enzymes',dose:'1–2 caps'},
-      {id:'ox-bile-am',name:'Ox Bile',dose:'500 mg'},
     ]
   },
   {
@@ -601,7 +669,6 @@ const BLOCKS = [
       {id:'berberine-lunch',name:'Berberine',dose:'2 caps'},
       {id:'caprylic-lunch',name:'Caprylic Acid',dose:'2 caps'},
       {id:'enzymes-lunch',name:'Digestive Enzymes',dose:'1–2 caps'},
-      {id:'ox-bile-lunch',name:'Ox Bile',dose:'500 mg'},
     ]
   },
   {
@@ -629,7 +696,6 @@ const BLOCKS = [
       {id:'caprylic-pm',name:'Caprylic Acid',dose:'2 caps'},
       {id:'quercetin-pm',name:'Quercetin',dose:'500 mg'},
       {id:'enzymes-pm',name:'Digestive Enzymes',dose:'1–2 caps'},
-      {id:'ox-bile-pm',name:'Ox Bile',dose:'500 mg'},
       {id:'magnesium',name:'Magnesium Bisglycinate',dose:'6 caps · 600 mg'},
       {id:'saffron',name:'Saffron',dose:'1 cap'},
     ]
@@ -679,6 +745,7 @@ function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
     const s = JSON.parse(raw);
+    if (!s.history) s.history = [];
     // Day rollover check
     if (s.lastDate !== todayKey()) {
       s.checks = {};
@@ -699,6 +766,7 @@ function defaultState(){
     streak: 0,
     lastDate: todayKey(),
     lastCompletedDate: null,
+    history: [],
   };
 }
 
@@ -718,6 +786,7 @@ function computeDayNumber(){
 }
 
 let state = loadState();
+let viewingHistoryIndex = null; // null = today; integer = index into state.history
 
 /* ============================================================
    RENDER
@@ -751,10 +820,15 @@ function statusLabel(status){
 }
 
 function renderBlocks(){
+  const isHistory = viewingHistoryIndex !== null;
+  const checks = isHistory ? (state.history[viewingHistoryIndex].checks || {}) : state.checks;
   const container = document.getElementById('blocks');
   container.innerHTML = BLOCKS.map(block => {
-    const status = blockStatus(block);
-    const checkedCount = block.supplements.filter(s => state.checks[s.id]).length;
+    const allChecked = block.supplements.every(s => checks[s.id]);
+    const status = isHistory
+      ? (allChecked ? 'complete' : 'pending')
+      : blockStatus(block);
+    const checkedCount = block.supplements.filter(s => checks[s.id]).length;
     const total = block.supplements.length;
     return `
       <div class="block ${status}" data-block="${block.id}">
@@ -770,7 +844,7 @@ function renderBlocks(){
         </div>
         <div class="supps">
           ${block.supplements.map(s => `
-            <div class="supp ${state.checks[s.id]?'checked':''}" data-id="${s.id}">
+            <div class="supp ${checks[s.id]?'checked':''}${isHistory?' readonly':''}" data-id="${s.id}">
               <div class="checkbox">
                 <svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg>
               </div>
@@ -786,16 +860,19 @@ function renderBlocks(){
     `;
   }).join('');
 
-  // Wire up checkboxes
-  container.querySelectorAll('.supp').forEach(el => {
-    el.addEventListener('click', () => toggleSupp(el.dataset.id));
-  });
+  if (!isHistory) {
+    container.querySelectorAll('.supp').forEach(el => {
+      el.addEventListener('click', () => toggleSupp(el.dataset.id));
+    });
+  }
 }
 
 function renderCare(){
+  const isHistory = viewingHistoryIndex !== null;
+  const careChecks = isHistory ? (state.history[viewingHistoryIndex].careChecks || {}) : state.careChecks;
   const list = document.getElementById('careList');
   list.innerHTML = CARE_ITEMS.map(c => `
-    <div class="supp ${state.careChecks[c.id]?'checked':''}" data-care="${c.id}">
+    <div class="supp ${careChecks[c.id]?'checked':''}${isHistory?' readonly':''}" data-care="${c.id}">
       <div class="checkbox">
         <svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg>
       </div>
@@ -805,21 +882,29 @@ function renderCare(){
       </div>
     </div>
   `).join('');
-  list.querySelectorAll('.supp').forEach(el => {
-    el.addEventListener('click', () => toggleCare(el.dataset.care));
-  });
+  if (!isHistory) {
+    list.querySelectorAll('.supp').forEach(el => {
+      el.addEventListener('click', () => toggleCare(el.dataset.care));
+    });
+  }
 }
 
 function renderStats(){
+  const isHistory = viewingHistoryIndex !== null;
+  const hist = isHistory ? state.history[viewingHistoryIndex] : null;
+
   // Day counter
-  document.getElementById('dayNum').innerHTML = `${state.dayCounter}<span class="small"> / ${PROTOCOL_DAYS}</span>`;
+  const dayNum = isHistory ? hist.dayNumber : state.dayCounter;
+  document.getElementById('dayNum').innerHTML = `${dayNum}<span class="small"> / ${PROTOCOL_DAYS}</span>`;
   document.getElementById('streakNum').textContent = state.streak;
 
-  // Today percentage
+  // Percentage — use historical checks when browsing history
   const allSupps = BLOCKS.flatMap(b => b.supplements);
-  const checkedSupps = allSupps.filter(s => state.checks[s.id]).length;
+  const checks = isHistory ? (hist.checks || {}) : state.checks;
+  const careChecks = isHistory ? (hist.careChecks || {}) : state.careChecks;
+  const checkedSupps = allSupps.filter(s => checks[s.id]).length;
   const allCare = CARE_ITEMS.length;
-  const checkedCare = CARE_ITEMS.filter(c => state.careChecks[c.id]).length;
+  const checkedCare = CARE_ITEMS.filter(c => careChecks[c.id]).length;
   const totalItems = allSupps.length + allCare;
   const completedItems = checkedSupps + checkedCare;
   const pct = totalItems ? Math.round(completedItems/totalItems*100) : 0;
@@ -827,19 +912,27 @@ function renderStats(){
   document.getElementById('suppMeta').textContent = `${checkedSupps} of ${allSupps.length}`;
   document.getElementById('careMeta').textContent = `${checkedCare} of ${allCare}`;
 
-  // Protocol bar
+  // Protocol bar always shows current overall progress
   const protocolPct = Math.round(((state.dayCounter - 1) / PROTOCOL_DAYS) * 100);
   document.getElementById('progressFill').style.width = protocolPct + '%';
   document.getElementById('protocolPct').textContent = protocolPct + '%';
 
-  // Complete button
+  // Action buttons — hidden in history mode
   const completeBtn = document.getElementById('completeDay');
-  if (pct === 100) {
-    completeBtn.disabled = false;
-    completeBtn.textContent = `Mark Day ${state.dayCounter} Complete →`;
+  const resetBtn = document.getElementById('resetDay');
+  if (isHistory) {
+    completeBtn.style.display = 'none';
+    resetBtn.style.display = 'none';
   } else {
-    completeBtn.disabled = true;
-    completeBtn.textContent = `Complete all items (${completedItems}/${totalItems})`;
+    completeBtn.style.display = '';
+    resetBtn.style.display = '';
+    if (pct === 100) {
+      completeBtn.disabled = false;
+      completeBtn.textContent = `Mark Day ${state.dayCounter} Complete →`;
+    } else {
+      completeBtn.disabled = true;
+      completeBtn.textContent = `Complete all items (${completedItems}/${totalItems})`;
+    }
   }
 }
 
@@ -851,14 +944,39 @@ function renderClock(){
   const h12 = h % 12 || 12;
   document.getElementById('clock').textContent = `${h12}:${m} ${ampm}`;
 
-  const dateOpts = {weekday:'long', day:'numeric', month:'long', year:'numeric'};
-  document.getElementById('dateDisplay').textContent = d.toLocaleDateString('en-AU', dateOpts);
+  if (viewingHistoryIndex === null) {
+    const dateOpts = {weekday:'long', day:'numeric', month:'long', year:'numeric'};
+    document.getElementById('dateDisplay').textContent = d.toLocaleDateString('en-AU', dateOpts);
+  }
+}
+
+function renderNav(){
+  const hist = state.history || [];
+  const isHistory = viewingHistoryIndex !== null;
+  document.getElementById('navBack').disabled =
+    hist.length === 0 || (isHistory && viewingHistoryIndex === 0);
+  document.getElementById('navForward').disabled = !isHistory;
+
+  const banner = document.getElementById('historyBanner');
+  if (isHistory) {
+    const entry = hist[viewingHistoryIndex];
+    const d = new Date(entry.date + 'T00:00:00');
+    const dateStr = d.toLocaleDateString('en-AU', {day:'numeric', month:'long', year:'numeric'});
+    document.getElementById('historyBannerText').textContent =
+      `Viewing Day ${entry.dayNumber} — ${dateStr} · Read only`;
+    banner.style.display = 'flex';
+    document.getElementById('dateDisplay').textContent =
+      d.toLocaleDateString('en-AU', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  } else {
+    banner.style.display = 'none';
+  }
 }
 
 function renderAll(){
   renderBlocks();
   renderCare();
   renderStats();
+  renderNav();
 }
 
 /* ============================================================
@@ -892,10 +1010,21 @@ function completeDay(){
     state.streak = 1;
   }
 
+  // Snapshot before clearing
+  if (!state.history) state.history = [];
+  state.history.push({
+    dayNumber: state.dayCounter,
+    date: todayKey(),
+    checks: Object.assign({}, state.checks),
+    careChecks: Object.assign({}, state.careChecks),
+    completedAt: new Date().toISOString(),
+  });
+
   state.lastCompletedDate = todayKey();
   state.dayCounter = Math.min(PROTOCOL_DAYS, state.dayCounter + 1);
   state.checks = {};
   state.careChecks = {};
+  viewingHistoryIndex = null;
   saveState(state);
 
   if (navigator.vibrate) navigator.vibrate([20,40,20]);
@@ -911,6 +1040,100 @@ function resetDay(){
     renderAll();
     showToast('Today reset');
   });
+}
+
+function navBack(){
+  const hist = state.history || [];
+  if (hist.length === 0) return;
+  if (viewingHistoryIndex === null) {
+    viewingHistoryIndex = hist.length - 1;
+  } else if (viewingHistoryIndex > 0) {
+    viewingHistoryIndex--;
+  }
+  renderAll();
+}
+
+function navForward(){
+  if (viewingHistoryIndex === null) return;
+  const hist = state.history || [];
+  if (viewingHistoryIndex >= hist.length - 1) {
+    viewingHistoryIndex = null;
+  } else {
+    viewingHistoryIndex++;
+  }
+  renderAll();
+}
+
+function exportCalendar(){
+  const CRLF = '\r\n';
+  const DTSTART_DATE = '20260523';
+  const BLOCK_TIMES = {
+    'morning':      '080000',
+    'morning-away': '084500',
+    'lunch':        '123000',
+    'afternoon':    '143000',
+    'dinner':       '183000',
+    'evening':      '193000',
+    'bed':          '220000',
+  };
+
+  function icalEscape(s){
+    return s.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,');
+  }
+
+  function icalFold(line){
+    if (line.length <= 75) return line;
+    let out = '';
+    let i = 0;
+    while (i < line.length) {
+      const chunk = i === 0 ? 75 : 74;
+      out += (i > 0 ? CRLF + ' ' : '') + line.substring(i, i + chunk);
+      i += chunk;
+    }
+    return out;
+  }
+
+  const events = BLOCKS.map(block => {
+    const time = BLOCK_TIMES[block.id];
+    const count = block.id === 'bed' ? 28 : 56;
+    const summary = `Protocol — ${block.label}`;
+    const desc = block.supplements.map(s => icalEscape(`${s.name} ${s.dose}`)).join('\\n');
+    const uid = `protocol-${block.id}@protocol-tracker`;
+    return [
+      'BEGIN:VEVENT',
+      `DTSTART:${DTSTART_DATE}T${time}`,
+      'DURATION:PT15M',
+      `RRULE:FREQ=DAILY;COUNT=${count}`,
+      icalFold(`SUMMARY:${icalEscape(summary)}`),
+      icalFold(`DESCRIPTION:${desc}`),
+      `UID:${uid}`,
+      'BEGIN:VALARM',
+      'TRIGGER:PT0S',
+      'ACTION:DISPLAY',
+      icalFold(`DESCRIPTION:${icalEscape(summary)}`),
+      'END:VALARM',
+      'END:VEVENT',
+    ].join(CRLF);
+  });
+
+  const ical = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Protocol Tracker//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    ...events,
+    'END:VCALENDAR',
+  ].join(CRLF) + CRLF;
+
+  const blob = new Blob([ical], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'protocol-reminders.ics';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Calendar file downloaded');
 }
 
 /* ============================================================
@@ -1011,6 +1234,13 @@ document.getElementById('completeDay').addEventListener('click', completeDay);
 document.getElementById('resetDay').addEventListener('click', resetDay);
 document.getElementById('enableNotif').addEventListener('click', enableNotifications);
 document.getElementById('exportData').addEventListener('click', exportBackup);
+document.getElementById('exportCalendar').addEventListener('click', exportCalendar);
+document.getElementById('navBack').addEventListener('click', navBack);
+document.getElementById('navForward').addEventListener('click', navForward);
+document.getElementById('todayPill').addEventListener('click', () => {
+  viewingHistoryIndex = null;
+  renderAll();
+});
 
 renderClock();
 renderAll();
