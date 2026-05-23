@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Protocol">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Protocol — 8 Week Reset</title>
+
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%230a0a0a'/><text x='90' y='115' font-family='Georgia,serif' font-size='90' font-weight='700' text-anchor='middle' fill='%23d4ff4d'>P</text></svg>">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0a0a'/><text x='16' y='22' font-family='Georgia,serif' font-size='18' font-weight='700' text-anchor='middle' fill='%23d4ff4d'>P</text></svg>">
+
+<link rel="manifest" href='data:application/manifest+json,{"name":"Protocol","short_name":"Protocol","start_url":".","display":"standalone","background_color":"%230a0a0a","theme_color":"%230a0a0a","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 192 192%27><rect width=%27192%27 height=%27192%27 rx=%2742%27 fill=%27%230a0a0a%27/><text x=%2796%27 y=%27122%27 font-family=%27Georgia%27 font-size=%2796%27 font-weight=%27700%27 text-anchor=%27middle%27 fill=%27%23d4ff4d%27>P</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --bg:#0a0a0a;
+  --bg-elev:#141414;
+  --bg-elev-2:#1c1c1c;
+  --border:#262626;
+  --border-strong:#3a3a3a;
+  --text:#f5f5f0;
+  --text-dim:#888;
+  --text-faint:#555;
+  --accent:#d4ff4d;
+  --accent-dim:#8aa830;
+  --warn:#ff6b3d;
+  --warn-bg:rgba(255,107,61,0.08);
+  --ok:#4dff88;
+  --ok-bg:rgba(77,255,136,0.06);
+  --active-bg:rgba(212,255,77,0.05);
+  --serif:'Instrument Serif','Georgia',serif;
+  --sans:'Inter',-apple-system,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',monospace;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.5;min-height:100vh;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+
+body{
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212,255,77,0.06), transparent),
+    var(--bg);
+}
+
+.app{max-width:520px;margin:0 auto;padding:20px 18px 120px}
+
+/* ===== HEADER ===== */
+.header{
+  margin-bottom:24px;
+  padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  margin-bottom:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.eyebrow .clock{color:var(--accent)}
+.title{
+  font-family:var(--serif);
+  font-size:46px;
+  line-height:1;
+  font-weight:400;
+  margin-bottom:4px;
+  letter-spacing:-0.02em;
+}
+.title em{font-style:italic;color:var(--accent)}
+.subtitle{
+  font-size:13px;
+  color:var(--text-dim);
+}
+
+/* ===== STATS ROW ===== */
+.stats{
+  display:grid;
+  grid-template-columns:1.4fr 1fr 1fr;
+  gap:8px;
+  margin-bottom:20px;
+}
+.stat{
+  background:var(--bg-elev);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 14px 12px;
+  position:relative;
+  overflow:hidden;
+}
+.stat-label{
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+  margin-bottom:6px;
+}
+.stat-value{
+  font-family:var(--serif);
+  font-size:32px;
+  line-height:1;
+  font-weight:400;
+}
+.stat-value .small{font-size:16px;color:var(--text-dim)}
+.stat-value.accent{color:var(--accent)}
+
+/* ===== PROGRESS BAR ===== */
+.progress-wrap{
+  margin-bottom:24px;
+}
+.progress-meta{
+  display:flex;
+  justify-content:space-between;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  margin-bottom:8px;
+}
+.progress-meta .pct{color:var(--accent)}
+.progress-bar{
+  height:6px;
+  background:var(--bg-elev);
+  border-radius:3px;
+  overflow:hidden;
+  position:relative;
+}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent-dim),var(--accent));
+  border-radius:3px;
+  transition:width 0.5s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+}
+.progress-fill::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+  animation:shimmer 2.5s infinite;
+}
+@keyframes shimmer{
+  0%{transform:translateX(-100%)}
+  100%{transform:translateX(100%)}
+}
+
+/* ===== SECTION HEADER ===== */
+.section-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  margin:28px 0 12px;
+}
+.section-title{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+}
+.section-meta{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text-faint);
+}
+
+/* ===== TIME BLOCK CARD ===== */
+.block{
+  background:var(--bg-elev);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px 18px 8px;
+  margin-bottom:12px;
+  position:relative;
+  transition:all 0.3s ease;
+}
+.block.active{
+  background:var(--active-bg);
+  border-color:var(--accent-dim);
+  box-shadow:0 0 0 1px var(--accent-dim), 0 8px 32px rgba(212,255,77,0.08);
+}
+.block.overdue{
+  background:var(--warn-bg);
+  border-color:var(--warn);
+}
+.block.complete{
+  opacity:0.55;
+  background:var(--bg-elev);
+}
+
+.block-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.block-time{
+  font-family:var(--serif);
+  font-size:28px;
+  line-height:1;
+  font-weight:400;
+  letter-spacing:-0.01em;
+}
+.block-time .ampm{
+  font-size:14px;
+  color:var(--text-dim);
+  margin-left:2px;
+}
+.block-label{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  margin-top:6px;
+}
+.block-status{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+}
+.status-pill{
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  padding:4px 8px;
+  border-radius:100px;
+  background:var(--bg-elev-2);
+  color:var(--text-faint);
+}
+.block.active .status-pill{background:var(--accent);color:#0a0a0a;font-weight:600}
+.block.overdue .status-pill{background:var(--warn);color:#fff;font-weight:600}
+.block.complete .status-pill{background:var(--ok-bg);color:var(--ok)}
+.block-count{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text-faint);
+}
+
+/* ===== SUPPLEMENT ROW ===== */
+.supp{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:opacity 0.2s;
+}
+.supp:last-child{border-bottom:none}
+.supp.checked{opacity:0.4}
+.supp.checked .supp-name{text-decoration:line-through;text-decoration-color:var(--text-faint)}
+
+.checkbox{
+  width:22px;
+  height:22px;
+  border:1.5px solid var(--border-strong);
+  border-radius:7px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.2s cubic-bezier(0.4,0,0.2,1);
+  background:var(--bg);
+}
+.supp.checked .checkbox{
+  background:var(--accent);
+  border-color:var(--accent);
+  animation:pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.checkbox svg{
+  width:14px;
+  height:14px;
+  stroke:#0a0a0a;
+  stroke-width:3;
+  fill:none;
+  stroke-dasharray:20;
+  stroke-dashoffset:20;
+  transition:stroke-dashoffset 0.3s 0.1s;
+}
+.supp.checked .checkbox svg{stroke-dashoffset:0}
+@keyframes pop{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.2)}
+  100%{transform:scale(1)}
+}
+
+.supp-body{flex:1;min-width:0}
+.supp-name{
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  letter-spacing:-0.005em;
+}
+.supp-dose{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text-dim);
+  margin-top:1px;
+}
+.supp-note{
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--warn);
+  margin-top:2px;
+}
+
+/* ===== EXTERNAL CARE ===== */
+.care-section{
+  background:var(--bg-elev);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px;
+  margin-top:8px;
+}
+.care-title{
+  font-family:var(--serif);
+  font-size:22px;
+  margin-bottom:4px;
+  font-style:italic;
+}
+.care-sub{
+  font-size:12px;
+  color:var(--text-dim);
+  margin-bottom:14px;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.actions{
+  margin-top:32px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.btn{
+  width:100%;
+  padding:16px;
+  border-radius:14px;
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:600;
+  letter-spacing:0.01em;
+  border:none;
+  cursor:pointer;
+  transition:all 0.2s;
+  -webkit-appearance:none;
+}
+.btn-primary{
+  background:var(--accent);
+  color:#0a0a0a;
+}
+.btn-primary:disabled{
+  background:var(--bg-elev);
+  color:var(--text-faint);
+  cursor:not-allowed;
+}
+.btn-primary:active:not(:disabled){
+  transform:scale(0.98);
+}
+.btn-secondary{
+  background:transparent;
+  color:var(--text-dim);
+  border:1px solid var(--border);
+}
+.btn-secondary:active{
+  background:var(--bg-elev);
+}
+.btn-ghost{
+  background:transparent;
+  color:var(--text-faint);
+  font-size:12px;
+  padding:10px;
+}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;
+  bottom:max(20px, env(safe-area-inset-bottom));
+  left:50%;
+  transform:translateX(-50%) translateY(120%);
+  background:var(--text);
+  color:var(--bg);
+  padding:12px 20px;
+  border-radius:100px;
+  font-size:13px;
+  font-weight:500;
+  z-index:1000;
+  transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  white-space:nowrap;
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ===== MODAL ===== */
+.modal-bg{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+  padding:20px;
+}
+.modal-bg.show{display:flex}
+.modal{
+  background:var(--bg-elev);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:24px;
+  max-width:340px;
+  width:100%;
+}
+.modal-title{
+  font-family:var(--serif);
+  font-size:24px;
+  margin-bottom:8px;
+}
+.modal-body{
+  font-size:14px;
+  color:var(--text-dim);
+  margin-bottom:20px;
+}
+.modal-actions{
+  display:flex;
+  gap:8px;
+}
+.modal-actions .btn{flex:1;padding:12px}
+
+/* ===== FOOTER LINKS ===== */
+.foot{
+  margin-top:40px;
+  padding-top:20px;
+  border-top:1px solid var(--border);
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text-faint);
+  text-align:center;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+}
+.foot a{color:var(--text-dim);text-decoration:none;margin:0 6px}
+
+/* Hide spinner */
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="eyebrow">
+      <span>Antifungal · Gut Repair</span>
+      <span class="clock" id="clock">--:--</span>
+    </div>
+    <div class="title">The <em>Reset.</em></div>
+    <div class="subtitle" id="dateDisplay">Loading…</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Day</div>
+      <div class="stat-value accent" id="dayNum">1<span class="small"> / 56</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Streak</div>
+      <div class="stat-value" id="streakNum">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Today</div>
+      <div class="stat-value" id="todayPct">0<span class="small">%</span></div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-meta">
+      <span>Protocol Progress</span>
+      <span class="pct" id="protocolPct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- TIME BLOCKS -->
+  <div class="section-head">
+    <div class="section-title">Supplements</div>
+    <div class="section-meta" id="suppMeta">0 of 0</div>
+  </div>
+  <div id="blocks"></div>
+
+  <!-- EXTERNAL CARE -->
+  <div class="section-head">
+    <div class="section-title">External Care</div>
+    <div class="section-meta" id="careMeta">0 of 0</div>
+  </div>
+  <div class="care-section">
+    <div class="care-title">Daily ritual</div>
+    <div class="care-sub">Barrier protection + hygiene</div>
+    <div id="careList"></div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn btn-primary" id="completeDay" disabled>Mark Day Complete</button>
+    <button class="btn btn-secondary" id="resetDay">Reset Today</button>
+    <button class="btn btn-ghost" id="enableNotif">Enable Reminders</button>
+    <button class="btn btn-ghost" id="exportData">Export Backup</button>
+  </div>
+
+  <div class="foot">
+    Local-first · Offline ready
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Confirm</div>
+    <div class="modal-body" id="modalBody">Are you sure?</div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   PROTOCOL DATA
+============================================================ */
+const PROTOCOL_START = new Date('2026-05-23T00:00:00');
+const PROTOCOL_DAYS = 56;
+
+const BLOCKS = [
+  {
+    id: 'morning',
+    time: '08:00',
+    timeDisplay: '8:00',
+    ampm: 'AM',
+    label: 'With Breakfast',
+    supplements: [
+      {id:'cod-liver',name:'Cod Liver Oil',dose:'1 tsp'},
+      {id:'b-complex',name:'B Complex',dose:'1 cap'},
+      {id:'nac-am',name:'NAC',dose:'600 mg'},
+      {id:'milk-thistle-am',name:'Milk Thistle',dose:'300 mg'},
+      {id:'ala-am',name:'R-Alpha Lipoic Acid',dose:'300 mg'},
+      {id:'berberine-am',name:'Berberine',dose:'2 caps'},
+      {id:'caprylic-am',name:'Caprylic Acid',dose:'2 caps'},
+      {id:'quercetin-am',name:'Quercetin',dose:'500 mg'},
+      {id:'zinc',name:'Zinc Picolinate',dose:'50 mg',note:'Every other day'},
+      {id:'enzymes-am',name:'Digestive Enzymes',dose:'1–2 caps'},
+      {id:'ox-bile-am',name:'Ox Bile',dose:'500 mg'},
+    ]
+  },
+  {
+    id: 'morning-away',
+    time: '08:45',
+    timeDisplay: '8:45',
+    ampm: 'AM',
+    label: '30+ min after breakfast',
+    supplements: [
+      {id:'glutathione-am',name:'Glutathione',dose:'1 cap'},
+      {id:'monolaurin-am',name:'Monolaurin',dose:'1 scoop in water'},
+      {id:'sacc-boulardii',name:'Saccharomyces Boulardii',dose:'1 cap'},
+      {id:'l-glutamine',name:'L-Glutamine',dose:'5 g in water'},
+    ]
+  },
+  {
+    id: 'lunch',
+    time: '12:30',
+    timeDisplay: '12:30',
+    ampm: 'PM',
+    label: 'With meal',
+    supplements: [
+      {id:'berberine-lunch',name:'Berberine',dose:'2 caps'},
+      {id:'caprylic-lunch',name:'Caprylic Acid',dose:'2 caps'},
+      {id:'enzymes-lunch',name:'Digestive Enzymes',dose:'1–2 caps'},
+      {id:'ox-bile-lunch',name:'Ox Bile',dose:'500 mg'},
+    ]
+  },
+  {
+    id: 'afternoon',
+    time: '14:30',
+    timeDisplay: '2:30',
+    ampm: 'PM',
+    label: 'Away from food',
+    supplements: [
+      {id:'probiotic',name:'Probiotic',dose:'25 billion'},
+      {id:'biofilm',name:'Biofilm Defense',dose:'2 caps'},
+    ]
+  },
+  {
+    id: 'dinner',
+    time: '18:30',
+    timeDisplay: '6:30',
+    ampm: 'PM',
+    label: 'With meal',
+    supplements: [
+      {id:'nac-pm',name:'NAC',dose:'600 mg'},
+      {id:'milk-thistle-pm',name:'Milk Thistle',dose:'300 mg'},
+      {id:'ala-pm',name:'R-Alpha Lipoic Acid',dose:'300 mg'},
+      {id:'berberine-pm',name:'Berberine',dose:'2 caps'},
+      {id:'caprylic-pm',name:'Caprylic Acid',dose:'2 caps'},
+      {id:'quercetin-pm',name:'Quercetin',dose:'500 mg'},
+      {id:'enzymes-pm',name:'Digestive Enzymes',dose:'1–2 caps'},
+      {id:'ox-bile-pm',name:'Ox Bile',dose:'500 mg'},
+      {id:'magnesium',name:'Magnesium Bisglycinate',dose:'6 caps · 600 mg'},
+      {id:'saffron',name:'Saffron',dose:'1 cap'},
+    ]
+  },
+  {
+    id: 'evening',
+    time: '19:30',
+    timeDisplay: '7:30',
+    ampm: 'PM',
+    label: '30+ min after dinner',
+    supplements: [
+      {id:'glutathione-pm',name:'Glutathione',dose:'1 cap'},
+      {id:'monolaurin-pm',name:'Monolaurin',dose:'1 scoop in water'},
+      {id:'slippery-elm',name:'Slippery Elm',dose:'2 caps'},
+      {id:'butyrate',name:'Sodium Butyrate',dose:'Per bottle'},
+    ]
+  },
+  {
+    id: 'bed',
+    time: '22:00',
+    timeDisplay: '10:00',
+    ampm: 'PM',
+    label: '2+ hrs after evening · Weeks 1–4 only',
+    supplements: [
+      {id:'charcoal',name:'Activated Charcoal',dose:'2 caps',note:'Weeks 1–4 only'},
+    ]
+  }
+];
+
+const CARE_ITEMS = [
+  {id:'care-am',name:'Morning shower + barrier cream',dose:'Sudocrem + Clotrimazole'},
+  {id:'care-bm',name:'After bowel movement routine',dose:'Wipe, dry, Sudocrem'},
+  {id:'care-pm',name:'Evening shower + barrier cream',dose:'Sudocrem + Clotrimazole'},
+];
+
+/* ============================================================
+   STATE
+============================================================ */
+const STORAGE_KEY = 'protocol-v1';
+const todayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const s = JSON.parse(raw);
+    // Day rollover check
+    if (s.lastDate !== todayKey()) {
+      s.checks = {};
+      s.lastDate = todayKey();
+      saveState(s);
+    }
+    return s;
+  } catch(e) {
+    return defaultState();
+  }
+}
+
+function defaultState(){
+  return {
+    checks: {},
+    careChecks: {},
+    dayCounter: computeDayNumber(),
+    streak: 0,
+    lastDate: todayKey(),
+    lastCompletedDate: null,
+  };
+}
+
+function saveState(s){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  } catch(e) {
+    showToast('Storage error');
+  }
+}
+
+function computeDayNumber(){
+  const now = new Date();
+  const start = new Date(PROTOCOL_START);
+  const diff = Math.floor((now - start) / (1000*60*60*24)) + 1;
+  return Math.max(1, Math.min(PROTOCOL_DAYS, diff));
+}
+
+let state = loadState();
+
+/* ============================================================
+   RENDER
+============================================================ */
+function timeToMinutes(t){
+  const [h,m] = t.split(':').map(Number);
+  return h*60 + m;
+}
+function nowMinutes(){
+  const d = new Date();
+  return d.getHours()*60 + d.getMinutes();
+}
+
+function blockStatus(block){
+  const allChecked = block.supplements.every(s => state.checks[s.id]);
+  if (allChecked) return 'complete';
+  const t = timeToMinutes(block.time);
+  const n = nowMinutes();
+  if (n >= t - 30 && n <= t + 30) return 'active';
+  if (n > t + 30) return 'overdue';
+  return 'pending';
+}
+
+function statusLabel(status){
+  return {
+    active:'Now',
+    overdue:'Overdue',
+    complete:'Done',
+    pending:'Upcoming'
+  }[status];
+}
+
+function renderBlocks(){
+  const container = document.getElementById('blocks');
+  container.innerHTML = BLOCKS.map(block => {
+    const status = blockStatus(block);
+    const checkedCount = block.supplements.filter(s => state.checks[s.id]).length;
+    const total = block.supplements.length;
+    return `
+      <div class="block ${status}" data-block="${block.id}">
+        <div class="block-head">
+          <div>
+            <div class="block-time">${block.timeDisplay}<span class="ampm"> ${block.ampm}</span></div>
+            <div class="block-label">${block.label}</div>
+          </div>
+          <div class="block-status">
+            <div class="status-pill">${statusLabel(status)}</div>
+            <div class="block-count">${checkedCount}/${total}</div>
+          </div>
+        </div>
+        <div class="supps">
+          ${block.supplements.map(s => `
+            <div class="supp ${state.checks[s.id]?'checked':''}" data-id="${s.id}">
+              <div class="checkbox">
+                <svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg>
+              </div>
+              <div class="supp-body">
+                <div class="supp-name">${s.name}</div>
+                <div class="supp-dose">${s.dose}</div>
+                ${s.note ? `<div class="supp-note">${s.note}</div>`:''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Wire up checkboxes
+  container.querySelectorAll('.supp').forEach(el => {
+    el.addEventListener('click', () => toggleSupp(el.dataset.id));
+  });
+}
+
+function renderCare(){
+  const list = document.getElementById('careList');
+  list.innerHTML = CARE_ITEMS.map(c => `
+    <div class="supp ${state.careChecks[c.id]?'checked':''}" data-care="${c.id}">
+      <div class="checkbox">
+        <svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg>
+      </div>
+      <div class="supp-body">
+        <div class="supp-name">${c.name}</div>
+        <div class="supp-dose">${c.dose}</div>
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.supp').forEach(el => {
+    el.addEventListener('click', () => toggleCare(el.dataset.care));
+  });
+}
+
+function renderStats(){
+  // Day counter
+  document.getElementById('dayNum').innerHTML = `${state.dayCounter}<span class="small"> / ${PROTOCOL_DAYS}</span>`;
+  document.getElementById('streakNum').textContent = state.streak;
+
+  // Today percentage
+  const allSupps = BLOCKS.flatMap(b => b.supplements);
+  const checkedSupps = allSupps.filter(s => state.checks[s.id]).length;
+  const allCare = CARE_ITEMS.length;
+  const checkedCare = CARE_ITEMS.filter(c => state.careChecks[c.id]).length;
+  const totalItems = allSupps.length + allCare;
+  const completedItems = checkedSupps + checkedCare;
+  const pct = totalItems ? Math.round(completedItems/totalItems*100) : 0;
+  document.getElementById('todayPct').innerHTML = `${pct}<span class="small">%</span>`;
+  document.getElementById('suppMeta').textContent = `${checkedSupps} of ${allSupps.length}`;
+  document.getElementById('careMeta').textContent = `${checkedCare} of ${allCare}`;
+
+  // Protocol bar
+  const protocolPct = Math.round(((state.dayCounter - 1) / PROTOCOL_DAYS) * 100);
+  document.getElementById('progressFill').style.width = protocolPct + '%';
+  document.getElementById('protocolPct').textContent = protocolPct + '%';
+
+  // Complete button
+  const completeBtn = document.getElementById('completeDay');
+  if (pct === 100) {
+    completeBtn.disabled = false;
+    completeBtn.textContent = `Mark Day ${state.dayCounter} Complete →`;
+  } else {
+    completeBtn.disabled = true;
+    completeBtn.textContent = `Complete all items (${completedItems}/${totalItems})`;
+  }
+}
+
+function renderClock(){
+  const d = new Date();
+  const h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2,'0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  document.getElementById('clock').textContent = `${h12}:${m} ${ampm}`;
+
+  const dateOpts = {weekday:'long', day:'numeric', month:'long', year:'numeric'};
+  document.getElementById('dateDisplay').textContent = d.toLocaleDateString('en-AU', dateOpts);
+}
+
+function renderAll(){
+  renderBlocks();
+  renderCare();
+  renderStats();
+}
+
+/* ============================================================
+   ACTIONS
+============================================================ */
+function toggleSupp(id){
+  state.checks[id] = !state.checks[id];
+  saveState(state);
+  if (navigator.vibrate) navigator.vibrate(8);
+  renderAll();
+}
+
+function toggleCare(id){
+  state.careChecks[id] = !state.careChecks[id];
+  saveState(state);
+  if (navigator.vibrate) navigator.vibrate(8);
+  renderAll();
+}
+
+function completeDay(){
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+
+  if (state.lastCompletedDate === yKey || state.streak === 0) {
+    state.streak += 1;
+  } else if (state.lastCompletedDate === todayKey()) {
+    showToast('Day already complete');
+    return;
+  } else {
+    state.streak = 1;
+  }
+
+  state.lastCompletedDate = todayKey();
+  state.dayCounter = Math.min(PROTOCOL_DAYS, state.dayCounter + 1);
+  state.checks = {};
+  state.careChecks = {};
+  saveState(state);
+
+  if (navigator.vibrate) navigator.vibrate([20,40,20]);
+  showToast(`Day ${state.dayCounter - 1} locked. Streak: ${state.streak} 🔥`);
+  renderAll();
+}
+
+function resetDay(){
+  showModal('Reset today?', 'This clears all checkboxes for today. Streak and day counter stay.', () => {
+    state.checks = {};
+    state.careChecks = {};
+    saveState(state);
+    renderAll();
+    showToast('Today reset');
+  });
+}
+
+/* ============================================================
+   NOTIFICATIONS
+============================================================ */
+async function enableNotifications(){
+  if (!('Notification' in window)) {
+    showToast('Notifications not supported');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    scheduleNotifications();
+    showToast('Reminders active');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    scheduleNotifications();
+    showToast('Reminders enabled');
+  } else {
+    showToast('Permission denied');
+  }
+}
+
+let scheduledTimers = [];
+function scheduleNotifications(){
+  scheduledTimers.forEach(clearTimeout);
+  scheduledTimers = [];
+
+  BLOCKS.forEach(block => {
+    const [h,m] = block.time.split(':').map(Number);
+    const target = new Date();
+    target.setHours(h, m, 0, 0);
+    if (target < new Date()) target.setDate(target.getDate() + 1);
+    const delay = target - new Date();
+
+    const timer = setTimeout(() => {
+      const allDone = block.supplements.every(s => state.checks[s.id]);
+      if (!allDone) {
+        new Notification(`${block.timeDisplay} ${block.ampm} — ${block.label}`, {
+          body: `${block.supplements.length} supplements due`,
+          icon: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 96 96%22><rect width=%2296%22 height=%2296%22 rx=%2222%22 fill=%22%23d4ff4d%22/><text x=%2248%22 y=%2266%22 font-family=%22Georgia%22 font-size=%2256%22 font-weight=%22700%22 text-anchor=%22middle%22 fill=%22%230a0a0a%22>P</text></svg>',
+          tag: block.id,
+        });
+      }
+      scheduleNotifications();
+    }, delay);
+    scheduledTimers.push(timer);
+  });
+}
+
+/* ============================================================
+   EXPORT
+============================================================ */
+function exportBackup(){
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `protocol-backup-${todayKey()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded');
+}
+
+/* ============================================================
+   UI HELPERS
+============================================================ */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function showModal(title, body, onConfirm){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').textContent = body;
+  document.getElementById('modal').classList.add('show');
+  const confirmBtn = document.getElementById('modalConfirm');
+  const newBtn = confirmBtn.cloneNode(true);
+  confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+  newBtn.addEventListener('click', () => {
+    document.getElementById('modal').classList.remove('show');
+    onConfirm();
+  });
+}
+document.getElementById('modalCancel').addEventListener('click', () => {
+  document.getElementById('modal').classList.remove('show');
+});
+
+/* ============================================================
+   INIT
+============================================================ */
+document.getElementById('completeDay').addEventListener('click', completeDay);
+document.getElementById('resetDay').addEventListener('click', resetDay);
+document.getElementById('enableNotif').addEventListener('click', enableNotifications);
+document.getElementById('exportData').addEventListener('click', exportBackup);
+
+renderClock();
+renderAll();
+setInterval(renderClock, 30000);
+setInterval(() => {
+  // Re-render time blocks for active/overdue status changes
+  renderBlocks();
+  renderStats();
+}, 60000);
+
+// Auto-check midnight rollover every minute
+setInterval(() => {
+  if (state.lastDate !== todayKey()) {
+    state = loadState();
+    renderAll();
+  }
+}, 60000);
+
+// Auto-schedule notifications if permission granted
+if ('Notification' in window && Notification.permission === 'granted') {
+  scheduleNotifications();
+}
+
+/* ============================================================
+   SERVICE WORKER (inline registration via blob)
+============================================================ */
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'protocol-v1';
+    self.addEventListener('install', e => {
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(self.clients.claim());
+    });
+    self.addEventListener('fetch', e => {
+      if (e.request.mode === 'navigate') {
+        e.respondWith(
+          fetch(e.request).catch(() => caches.match(e.request).then(r => r || caches.match('/')))
+        );
+      } else {
+        e.respondWith(
+          caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+            const respClone = resp.clone();
+            caches.open(CACHE).then(c => c.put(e.request, respClone));
+            return resp;
+          }).catch(() => caches.match(e.request)))
+        );
+      }
+    });
+  `;
+  const blob = new Blob([swCode], {type:'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  // Note: blob-based SWs don't work on GitHub Pages; we use a separate sw.js file.
+  // The registration below will attempt sw.js (relative to index.html).
+  navigator.serviceWorker.register('./sw.js').catch(() => {
+    // Fallback silent — app still works without SW
+  });
+}
+</script>
+
+</body>
+</html>
